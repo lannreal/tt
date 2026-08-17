@@ -28,6 +28,7 @@
 - [🌐 Panduan REST API Server](#-panduan-rest-api-server)
 - [📥 Direct Video Downloader](#-direct-video-downloader)
 - [📄 Spesifikasi Skema Data JSON](#-spesifikasi-skema-data-json)
+- [🚀 Panduan Deployment Multi-Platform (Production-Grade)](#-panduan-deployment-multi-platform-production-grade)
 - [🛡️ Fitur Keamanan, Memory & Stabilitas Jangka Panjang](#️-fitur-keamanan-memory--stabilitas-jangka-panjang)
 
 ---
@@ -89,8 +90,8 @@ pkg install tur-repo -y && pkg install chromium -y
 
 ### 2. Clone Repository
 ```bash
-git clone https://github.com/lannreal/tt.git
-cd tt
+git clone https://github.com/lannreal/aemprem.git
+cd aemprem
 ```
 
 ### 3. Jalankan Pencarian
@@ -345,6 +346,178 @@ node tt.js download "<URL_STREAM_MP4>" nama_video.mp4
 
 ---
 
+## 🚀 Panduan Deployment Multi-Platform (Production-Grade)
+
+Engine ini dapat di-deploy ke berbagai infrastruktur server modern secara fleksibel:
+
+---
+
+### 1. 🖥️ Deployment di VPS (Ubuntu / Debian / CentOS) dengan PM2 & Nginx
+
+Metode paling disukai untuk menjalankan REST API Server 24/7 tanpa henti:
+
+#### Langkah A: Install Node.js & Chromium di VPS
+```bash
+# 1. Update sistem dan install Chromium
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y curl git chromium-browser
+
+# 2. Install Node.js v18 / v20 LTS
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# 3. Install PM2 Process Manager secara global
+sudo npm install -g pm2
+```
+
+#### Langkah B: Clone Project & Jalankan dengan PM2
+```bash
+# Clone repository
+git clone https://github.com/lannreal/aemprem.git
+cd aemprem
+
+# Jalankan service REST API di background dengan PM2
+pm2 start tt.js --name "tiktok-api" -- api 3000
+
+# Simpan proses agar otomatis berjalan saat VPS reboot/restart
+pm2 startup
+pm2 save
+```
+
+#### Langkah C: Konfigurasi Nginx Reverse Proxy & SSL (HTTPS Gratis)
+Buat konfigurasi virtual host di `/etc/nginx/sites-available/tiktok-api`:
+```nginx
+server {
+    server_name api.domainkamu.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_read_timeout 60s;
+        proxy_connect_timeout 60s;
+    }
+}
+```
+Aktifkan dan pasang SSL Let's Encrypt:
+```bash
+sudo ln -s /etc/nginx/sites-available/tiktok-api /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d api.domainkamu.com
+```
+
+---
+
+### 2. 🚂 Deployment di Cloud PaaS (Railway / Render / Fly.io / Koyeb)
+
+Repository ini sudah dilengkapi dengan **`Dockerfile` siap pakai**. Platform seperti Railway dan Render akan otomatis mendeteksi Dockerfile dan meng-install environment Chromium secara otomatis:
+
+#### Cara Deploy di Railway:
+1. Login ke [railway.app](https://railway.app).
+2. Klik **New Project** > **Deploy from GitHub repo**.
+3. Pilih repository `aemprem`.
+4. Di bagian **Variables**, kamu bisa menambahkan variabel opsional:
+   - `PORT`: `3000`
+   - `TIKTOK_COOKIE`: *(isi dengan seluruh baris cookie dari `cookie.txt` jika ingin menggunakan env variable)*
+5. Railway akan otomatis build container Docker dan memberikan Public Domain URL (misal: `https://aemprem-production.up.railway.app/api/search?keyword=about+you`).
+
+---
+
+### 3. ☁️ Integrasi dengan Cloudflare Workers (Global Edge Proxy & Caching Gateway)
+
+Cloudflare Workers berjalan di V8 Isolates (tanpa filesystem binary Chrome). Arsitektur terbaik adalah menjadikan **Cloudflare Worker sebagai Edge Reverse Proxy** di depan server VPS / Railway kamu. Ini memberikan keuntungan:
+* Kecepatan CDN global Cloudflare.
+* Fitur auto-caching hasil pencarian untuk menghemat resource backend.
+* Proteksi DDoS dan rate-limiting gratis.
+
+#### Script Cloudflare Worker (`worker.js`):
+```javascript
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+
+    // Ganti dengan URL backend VPS / Railway kamu
+    const BACKEND_ORIGIN = "https://aemprem-production.up.railway.app";
+    const targetUrl = new URL(url.pathname + url.search, BACKEND_ORIGIN);
+
+    // Handle CORS Preflight
+    if (request.method === "OPTIONS") {
+      return new Response(null, {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type"
+        }
+      });
+    }
+
+    // Forward request ke backend dengan caching Cloudflare
+    const cacheKey = new Request(targetUrl.toString(), request);
+    const cache = caches.default;
+    let response = await cache.match(cacheKey);
+
+    if (!response) {
+      response = await fetch(targetUrl.toString(), {
+        headers: request.headers,
+        method: request.method
+      });
+
+      const responseClone = new Response(response.body, response);
+      responseClone.headers.set("Access-Control-Allow-Origin", "*");
+      responseClone.headers.set("Cache-Control", "public, max-age=120"); // Cache 2 menit
+
+      ctx.waitUntil(cache.put(cacheKey, responseClone.clone()));
+      return responseClone;
+    }
+
+    return response;
+  }
+};
+```
+
+---
+
+### 4. 🐳 Deployment Menggunakan Docker & Docker Compose
+
+#### Build & Run Container Manual:
+```bash
+# Build image Docker
+docker build -t tiktok-scraper-api .
+
+# Jalankan container di port 3000
+docker run -d \
+  -p 3000:3000 \
+  --name tiktok-api \
+  --restart unless-stopped \
+  tiktok-scraper-api
+```
+
+#### Menjalankan dengan `docker-compose.yml`:
+```yaml
+version: '3.8'
+
+services:
+  tiktok-api:
+    build: .
+    container_name: tiktok-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+```
+Jalankan dengan perintah:
+```bash
+docker compose up -d
+```
+
+---
+
 ## 🛡️ Fitur Keamanan, Memory & Stabilitas Jangka Panjang
 
 1. **Zero Disk Leaks (`fs.rmSync`)**: Folder temporary user data browser otomatis dihapus dari memori penyimpanan setiap kali request selesai.
@@ -359,4 +532,4 @@ node tt.js download "<URL_STREAM_MP4>" nama_video.mp4
 
 - **Lead Developer**: Lann
 - **License**: MIT
-- **Issues & Pull Requests**: [GitHub Repository Issues](https://github.com/lannreal/tt/issues)
+- **Issues & Pull Requests**: [GitHub Repository Issues](https://github.com/lannreal/aemprem/issues)
