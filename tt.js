@@ -601,54 +601,74 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
 
         let id = 1;
         const pending = new Map();
-        function send(method, params = {}) {
+        function send(method, params = {}, timeoutMs = 8000) {
             return new Promise((resolve, reject) => {
                 const reqId = id++;
-                pending.set(reqId, { resolve, reject });
-                ws.send(JSON.stringify({ id: reqId, method, params }));
+                const timer = setTimeout(() => {
+                    if (pending.has(reqId)) {
+                        pending.delete(reqId);
+                        resolve({});
+                    }
+                }, timeoutMs);
+
+                pending.set(reqId, {
+                    resolve: (val) => { clearTimeout(timer); resolve(val); },
+                    reject: (err) => { clearTimeout(timer); reject(err); }
+                });
+
+                try {
+                    ws.send(JSON.stringify({ id: reqId, method, params }));
+                } catch (e) {
+                    clearTimeout(timer);
+                    resolve({});
+                }
             });
         }
+
+        console.log(`[1/3] ⚡ Browser CDP terhubung pada port ${port}`);
 
         let rawSearchList = [];
         const searchReqIds = new Set();
 
         ws.onmessage = async (ev) => {
-            const msg = JSON.parse(ev.data);
-            if (msg.id && pending.has(msg.id)) {
-                const entry = pending.get(msg.id);
-                pending.delete(msg.id);
-                if (msg.error) {
-                    entry.reject(new Error(msg.error.message || JSON.stringify(msg.error)));
-                } else {
-                    entry.resolve(msg.result);
+            try {
+                const msg = JSON.parse(ev.data);
+                if (msg.id && pending.has(msg.id)) {
+                    const entry = pending.get(msg.id);
+                    pending.delete(msg.id);
+                    if (msg.error) {
+                        entry.reject(new Error(msg.error.message || JSON.stringify(msg.error)));
+                    } else {
+                        entry.resolve(msg.result);
+                    }
                 }
-            }
 
-            if (msg.method === 'Network.responseReceived') {
-                const u = msg.params?.response?.url || '';
-                if (u.includes('/api/search/general/full/') || u.includes('/api/search/item/full/') || u.includes('/api/search/video/full/')) {
-                    searchReqIds.add(msg.params.requestId);
+                if (msg.method === 'Network.responseReceived') {
+                    const u = msg.params?.response?.url || '';
+                    if (u.includes('/api/search/general/full/') || u.includes('/api/search/item/full/') || u.includes('/api/search/video/full/')) {
+                        searchReqIds.add(msg.params.requestId);
+                    }
                 }
-            }
 
-            if (msg.method === 'Network.loadingFinished' && searchReqIds.has(msg.params.requestId)) {
-                try {
-                    const bodyRes = await send('Network.getResponseBody', { requestId: msg.params.requestId });
-                    if (bodyRes && bodyRes.body) {
-                        let text = bodyRes.body;
-                        if (bodyRes.base64Encoded) {
-                            text = Buffer.from(text, 'base64').toString('utf8');
-                        }
-                        if (text.trim().startsWith('{')) {
-                            const data = JSON.parse(text);
-                            const list = data.data || data.item_list || data.search_data || [];
-                            if (list.length > 0) {
-                                rawSearchList = list;
+                if (msg.method === 'Network.loadingFinished' && searchReqIds.has(msg.params.requestId)) {
+                    try {
+                        const bodyRes = await send('Network.getResponseBody', { requestId: msg.params.requestId });
+                        if (bodyRes && bodyRes.body) {
+                            let text = bodyRes.body;
+                            if (bodyRes.base64Encoded) {
+                                text = Buffer.from(text, 'base64').toString('utf8');
+                            }
+                            if (text.trim().startsWith('{')) {
+                                const data = JSON.parse(text);
+                                const list = data.data || data.item_list || data.search_data || [];
+                                if (list.length > 0) {
+                                    rawSearchList = list;
+                                }
                             }
                         }
-                    }
-                } catch (e) {}
-            }
+                    } catch (e) {}
+                }
+            } catch (e) {}
         };
 
         await send('Network.enable', {
@@ -711,6 +731,7 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
             }
         }
 
+        console.log(`[2/3] 🌐 Membuka halaman pencarian TikTok: "${keyword}"...`);
         await send('Page.navigate', { url: `https://www.tiktok.com/search?q=${encodeURIComponent(keyword)}` });
 
         // Adaptive Polling: Wait for search results from CDP or DOM with auto-retry on error screens
@@ -778,6 +799,7 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
         }
 
         process.stderr.write('\r' + ' '.repeat(40) + '\r');
+        console.log(`[3/3] 📊 Berhasil memperoleh ${rawSearchList.length} data video! Memproses enrichment...`);
 
         if (page > 1 && rawSearchList.length > 0) {
             const scrollSteps = (page - 1) * 2;
@@ -1162,18 +1184,16 @@ function startRestApiServer(port = DEFAULT_PORT) {
     });
 }
 
-function promptInteractive(rl, queryText) {
+function promptInteractive(queryText) {
     return new Promise((resolve) => {
-        if (!rl || rl.closed) {
-            return resolve('q');
-        }
-        try {
-            rl.question(queryText, (answer) => {
-                resolve((answer || '').trim());
-            });
-        } catch (e) {
-            resolve('q');
-        }
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+        });
+        rl.question(queryText, (answer) => {
+            rl.close();
+            resolve((answer || '').trim());
+        });
     });
 }
 
@@ -1231,11 +1251,6 @@ async function main() {
         return;
     }
 
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-    });
-
     let running = true;
 
     while (running) {
@@ -1267,7 +1282,7 @@ async function main() {
         // Minimal single-line navigation prompt
         console.log('\n' + C.dim + '─'.repeat(75) + C.reset);
         console.log(`${C.dim}[Page ${currentPage} · ${formatRegionLabel(currentRegion)}]${C.reset} [${C.bold}Enter${C.reset}] Next · [${C.bold}1-9${C.reset}] Jump · [${C.bold}r <reg>${C.reset}] Region · [${C.bold}q${C.reset}] Quit`);
-        const answer = await promptInteractive(rl, `${C.cyan}›${C.reset} `);
+        const answer = await promptInteractive(`${C.cyan}›${C.reset} `);
 
         if (answer.toLowerCase() === 'q' || answer.toLowerCase() === 'exit') {
             running = false;
@@ -1290,8 +1305,6 @@ async function main() {
             }
         }
     }
-
-    rl.close();
 }
 
 if (require.main === module) {
