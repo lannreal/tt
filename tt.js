@@ -306,22 +306,22 @@ function findBrowserPath() {
     const termuxPrefix = process.env.PREFIX || '/data/data/com.termux/files/usr';
     const userProfile = process.env.USERPROFILE || '';
     const possible = [
-        path.join(termuxPrefix, 'bin', 'headless_shell'),
         path.join(termuxPrefix, 'bin', 'chromium-browser'),
-        path.join(termuxPrefix, 'lib', 'chromium', 'headless_shell'),
+        path.join(termuxPrefix, 'bin', 'chromium'),
         path.join(termuxPrefix, 'lib', 'chromium', 'chrome'),
         path.join(termuxPrefix, 'lib', 'chromium', 'chrome-wrapper'),
+        path.join(termuxPrefix, 'bin', 'headless_shell'),
+        path.join(termuxPrefix, 'lib', 'chromium', 'headless_shell'),
         path.join(termuxPrefix, 'opt', 'chromium', 'chromium'),
         path.join(termuxPrefix, 'opt', 'chromium', 'chrome'),
         path.join(termuxPrefix, 'lib', 'chromium', 'chromium'),
         path.join(termuxPrefix, 'libexec', 'chromium'),
-        path.join(termuxPrefix, 'bin', 'chromium'),
         path.join(termuxPrefix, 'bin', 'chrome'),
-        '/data/data/com.termux/files/usr/bin/headless_shell',
         '/data/data/com.termux/files/usr/bin/chromium-browser',
-        '/data/data/com.termux/files/usr/lib/chromium/headless_shell',
-        '/data/data/com.termux/files/usr/lib/chromium/chrome',
         '/data/data/com.termux/files/usr/bin/chromium',
+        '/data/data/com.termux/files/usr/lib/chromium/chrome',
+        '/data/data/com.termux/files/usr/bin/headless_shell',
+        '/data/data/com.termux/files/usr/lib/chromium/headless_shell',
         'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
         'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
         path.join(userProfile, 'AppData\\Local\\Google\\Chrome\\Application\\chrome.exe'),
@@ -625,7 +625,7 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
             });
         }
 
-        console.log(`[1/3] ⚡ Browser CDP terhubung pada port ${port}`);
+        console.log(`[1/3] ⚡ Browser terhubung (${path.basename(browserPath)} port ${port})`);
 
         let rawSearchList = [];
         const searchReqIds = new Set();
@@ -652,7 +652,7 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
 
                 if (msg.method === 'Network.loadingFinished' && searchReqIds.has(msg.params.requestId)) {
                     try {
-                        const bodyRes = await send('Network.getResponseBody', { requestId: msg.params.requestId });
+                        const bodyRes = await send('Network.getResponseBody', { requestId: msg.params.requestId }, 3000);
                         if (bodyRes && bodyRes.body) {
                             let text = bodyRes.body;
                             if (bodyRes.base64Encoded) {
@@ -728,24 +728,11 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
         console.log(`[2/3] 🌐 Membuka halaman pencarian TikTok: "${keyword}"...`);
         await send('Page.navigate', { url: `https://www.tiktok.com/search?q=${encodeURIComponent(keyword)}` }, 5000);
 
-        // Adaptive Polling: Wait for search results from CDP, in-page memory, or DOM
-        for (let poll = 0; poll < 15; poll++) {
-            process.stderr.write(`\r⏳ Menunggu data TikTok [${poll + 1}/15]... `);
-            await new Promise(r => setTimeout(r, 1000));
+        // Adaptive Polling: Wait for search results from CDP or DOM
+        for (let poll = 0; poll < 12; poll++) {
+            await new Promise(r => setTimeout(r, 1200));
 
-            // Priority 1: Check CDP interceptor or in-page window variable
-            if (rawSearchList.length === 0) {
-                try {
-                    const inPageRes = await send('Runtime.evaluate', {
-                        expression: 'window.__tiktokSearchResults',
-                        returnByValue: true
-                    });
-                    if (inPageRes?.result?.value && inPageRes.result.value.length > 0) {
-                        rawSearchList = inPageRes.result.value;
-                        break;
-                    }
-                } catch(e) {}
-            }
+            // Priority 1: Check CDP interceptor
             if (rawSearchList.length > 0) break;
 
             // Priority 2: Auto-click "Try again" / "Refresh" button (Leaf element only)
@@ -806,7 +793,7 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
                         })()
                     `,
                     returnByValue: true
-                });
+                }, 3000);
 
                 if (domRes?.result?.value && domRes.result.value.length > 0) {
                     rawSearchList = domRes.result.value;
@@ -815,7 +802,7 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
             } catch (e) {}
 
             try {
-                await send('Runtime.evaluate', { expression: 'window.scrollBy(0, 600);' });
+                await send('Runtime.evaluate', { expression: 'window.scrollBy(0, 600);' }, 1500);
             } catch (e) {}
         }
 
