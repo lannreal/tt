@@ -541,7 +541,7 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
 
     const chromeProc = spawn(browserPath, [
         ...browserArgs,
-        targetSearchUrl
+        'about:blank'
     ]);
 
     let procError = null;
@@ -661,7 +661,9 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
                 }
 
                 if (msg.method === 'Network.loadingFailed' && msg.params?.type === 'Document') {
-                    console.log(`⚠️ Status Koneksi: ${msg.params?.errorText || 'Jaringan Terputus'}`);
+                    if (msg.params?.errorText && msg.params.errorText !== 'net::ERR_ABORTED') {
+                        console.log(`⚠️ Status Koneksi: ${msg.params.errorText}`);
+                    }
                 }
 
                 if (msg.method === 'Network.responseReceived') {
