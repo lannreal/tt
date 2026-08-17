@@ -1,284 +1,337 @@
-<div align="center">
+# 🚀 TikTok Ultra-Precision Search Scraper & REST API Engine (v2.0)
 
-  # 🚀 TikTok Search Scraper & REST API Engine
-  
-  **Ultra-Precision TikTok Search Scraper, Direct No-Watermark Video Downloader, & Production-Ready REST API Server**
+<p align="center">
+  <img src="https://img.shields.io/badge/Node.js-v18%2B-green?style=for-the-badge&logo=node.js" alt="Node.js" />
+  <img src="https://img.shields.io/badge/Dependencies-Zero%20NPM-blue?style=for-the-badge" alt="Zero Dependencies" />
+  <img src="https://img.shields.io/badge/Cookie-Pre--Configured%20%E2%9C%94%EF%B8%8F-brightgreen?style=for-the-badge" alt="Cookie Included" />
+  <img src="https://img.shields.io/badge/Termux%20Android-Super%20Lightweight%20(128MB)-orange?style=for-the-badge&logo=android" alt="Termux Android" />
+  <img src="https://img.shields.io/badge/WAF%20Protection-Smart%20Auto--Recovery-red?style=for-the-badge" alt="WAF Auto Recovery" />
+  <img src="https://img.shields.io/badge/Creator-Lann-purple?style=for-the-badge" alt="Creator Lann" />
+</p>
 
-  [![Node.js Version](https://img.shields.io/badge/node.js-%3E%3D18.0.0-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
-  [![License](https://img.shields.io/badge/license-MIT-blue.style=for-the-badge)](LICENSE)
-  [![Created By](https://img.shields.io/badge/Author-Lann-FF0050?style=for-the-badge&logo=tiktok&logoColor=white)](#-kreator)
-  [![Region Support](https://img.shields.io/badge/Region-Global_Support-00f2fe?style=for-the-badge&logo=globe&logoColor=white)](#-dynamic-region-selector)
-  [![Precision Engine](https://img.shields.io/badge/NLP_Engine-100%25_Ultra_Precision-ff007f?style=for-the-badge)](#-ultra-precision-nlp-scoring-engine)
-  [![RAM Usage](https://img.shields.io/badge/RAM_Usage-%3C30MB-brightgreen?style=for-the-badge)](#-perbandingan-performa-benchmark)
-
-  <br/>
-
-  <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3hxd3FvNmh0eHF3b202aTZyY3h6eHh4eHh4eHh4eHh4eHh4eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Lq7zE6m3K2k9y/giphy.gif" width="750" alt="Smooth Banner Animation" style="border-radius: 12px; box-shadow: 0px 4px 20px rgba(255, 0, 80, 0.3);"/>
-
-  <br/>
-  <br/>
-
-  <p align="center">
-    <b>Solusi Ringan, Super Cepat, dan 100% Akurat Tanpa Headless Browser!</b><br/>
-    Dibuat dengan Node.js Native & Pure HTTP Fetch API. Mendukung Interactive CLI Navigator & REST API Server dalam 1 file tunggal (<code>tt.js</code>).
-  </p>
-
-</div>
+> **Created with ❤️ by Lann**  
+> Engine pencarian TikTok presisi tinggi, metadata scraper (*Views, Likes, Comments, Shares, Saves, Duration, Audio MP3, Direct MP4 No Watermark*), serta server REST API bawaan dengan arsitektur **Zero External NPM Dependencies**.  
+> **Siap Pakai (Out-of-the-Box)**: File `cookie.txt` sudah disertakan langsung di repository, siap di-run langsung di **PC** maupun **HP Android via Termux** tanpa setting rumit!
 
 ---
 
-## 📑 Daftar Isi (Table of Contents)
+## 📑 Daftar Isi
 
-- [🌟 Mengapa Memilih Project Ini?](#-mengapa-memilih-project-ini)
-- [📊 Perbandingan Performa & Benchmark](#-perbandingan-performa--benchmark)
-- [✨ Fitur Unggulan (Key Features)](#-fitur-unggulan-key-features)
-- [🎯 Cara Kerja Ultra-Precision NLP Scoring Engine](#-cara-kerja-ultra-precision-nlp-scoring-engine)
-- [🛡️ ISO Region Whitelist Guard (Smart CLI Parser)](#️-iso-region-whitelist-guard-smart-cli-parser)
-- [🛠️ Persyaratan Sistem & Instalasi](#️-persyaratan-sistem--instalasi)
-- [💻 Panduan Penggunaan CLI (Terminal Mode)](#-panduan-penggunaan-cli-terminal-mode)
-- [🎮 Navigasi Interaktif Terminal](#-navigasi-interaktif-terminal)
-- [📡 Dokumentasi REST API Server](#-dokumentasi-rest-api-server)
-  - [1. GET /api/search](#1-search-api-get-apisearch)
-  - [2. GET /api/download](#2-direct-download-api-get-apidownload)
-  - [3. GET /api](#3-server-health--info-api-get-api)
-- [💻 Contoh Integrasi Kode (Code Snippets)](#-contoh-integrasi-kode-code-snippets)
-  - [Node.js (Fetch)](#1-nodejs-fetch-api)
-  - [Python (Requests)](#2-python-requests)
-  - [HTML / Frontend JavaScript](#3-frontend-javascript--html-download-button)
-  - [PHP (cURL)](#4-php-curl)
-- [🚀 Panduan Deploy ke Server Production](#-panduan-deploy-ke-server-production)
-  - [Deploy Menggunakan PM2](#a-deploy-vps-menggunakan-pm2)
-  - [Deploy Menggunakan Docker](#b-deploy-menggunakan-docker)
-- [⚠️ Troubleshooting & FAQ](#️-troubleshooting--faq)
-- [📜 Lisensi & Kredit](#-lisensi--kredit)
+- [🆕 Apa yang Baru di v2.0?](#-apa-yang-baru-di-v20)
+- [✨ Fitur Unggulan](#-fitur-unggulan)
+- [🪶 Mengapa Headless Browser Buatan Kita Sangat Ringan?](#-mengapa-headless-browser-buatan-kita-sangat-ringan)
+- [📱 Panduan Lengkap Termux (Android)](#-panduan-lengkap-termux-android)
+- [💻 Panduan di PC (Windows / Linux / macOS)](#-panduan-di-pc-windows--linux--macos)
+- [⚙️ Mekanisme Smart WAF Auto-Recovery & Arsitektur](#️-mekanisme-smart-waf-auto-recovery--arsitektur)
+- [🔑 Panduan Lengkap Konfigurasi Cookie](#-panduan-lengkap-konfigurasi-cookie)
+- [🖥️ Panduan CLI Interaktif](#️-panduan-cli-interaktif)
+- [🌐 Panduan REST API Server](#-panduan-rest-api-server)
+- [📥 Direct Video Downloader](#-direct-video-downloader)
+- [📄 Spesifikasi Skema Data JSON](#-spesifikasi-skema-data-json)
+- [🛡️ Fitur Keamanan, Memory & Stabilitas Jangka Panjang](#️-fitur-keamanan-memory--stabilitas-jangka-panjang)
 
 ---
 
-## 🌟 Mengapa Memilih Project Ini?
+## 🆕 Apa yang Baru di v2.0?
 
-Scraper TikTok pada umumnya menggunakan **Playwright**, **Puppeteer**, atau **Selenium** yang mengkonsumsi memory RAM sangat besar (>500MB - 2GB) dan seringkali terkena deteksi Cloudflare / CAPTCHA.
-
-Proyek ini dibangun dari nol menggunakan **Murni HTTP Fetch API (Reverse-Engineered TikTok SSR & XHR Endpoints)**. Didesain khusus untuk kecepatan tinggi, konsumsi RAM yang sangat rendah (<30MB), serta hasil pencarian yang **100% presisi tinggi**.
-
----
-
-## 📊 Perbandingan Performa & Benchmark
-
-<div align="center">
-
-| Parameter | TikTok Search Engine (By Lann) | Puppeteer / Playwright | Selenium WebDriver |
-| :--- | :---: | :---: | :---: |
-| **Konsumsi Memory RAM** | **~25 - 30 MB** 🚀 | ~600 MB - 1.5 GB | ~800 MB - 2 GB |
-| **Waktu Respon (Latency)** | **< 800 ms** ⚡ | 4.000 - 8.000 ms | 6.000 - 12.000 ms |
-| **Kebutuhan Chromium** | **TIDAK PERLU** ✅ | Ya (Besar & Berat) | Ya (Besar & Berat) |
-| **Bypass Error 403 CDN** | **OTOMATIS (Bypass Header)** | Tergantung Browser | Tergantung Browser |
-| **ModeREST API & CLI** | **1 File Tunggal (`tt.js`)** | Membutuhkan Framework | Membutuhkan Framework |
-
-</div>
+* 🛡️ **Smart WAF Auto-Recovery Engine**: Otomatis mendeteksi dan melewati layar proteksi robot *"Something went wrong"* dengan menstimulasi event *Try again* yang memicu kalkulasi token *WebAssembly (`X-Bogus`/`X-Gnarly`)* secara instan.
+* 📱 **Termux Low-RAM Optimization**: Dibatasi maksimal **128 MB V8 Heap** (`--max-old-space-size=128`) dengan flag `--disable-dev-shm-usage` dan `--no-sandbox`. Sangat adem, tidak membuat HP lag, dan RAM langsung bersih kembali 100% setelah 2–4 detik scraping.
+* 🎯 **Universal Video Permalink Selector**: Menggunakan ekstraksi regex permalink inti `/\/video\/(\d+)/` yang independen dari perubahan nama class CSS React TikTok.
+* ⚡ **Pre-Enriched Metadata**: Video hasil pencarian langsung diperkaya secara paralel dengan data views, likes, shares, direct MP4 no watermark, audio MP3, avatar kreator, dan cover HD.
+* 🔒 **Async Mutex Concurrency Lock**: Mencegah tabrakan port CDP dan CPU thrashing saat banyak request masuk bersamaan pada mode REST API Server.
 
 ---
 
-## ✨ Fitur Unggulan (Key Features)
+## ✨ Fitur Unggulan
 
-1. **Pure HTTP API (No Headless Browser)**: 100% tanpa browser headless. Ringan, cepat, dan hemat sumber daya VPS.
-2. **Ultra-Precision NLP Scoring Engine**: Menyeleksi setiap video dengan evaluasi kedekatan jarak kata (Proximity Distance) untuk membuang hasil pencarian yang tidak relevan (*false positives*).
-3. **Dynamic Region Selector**: Cari video spesifik dari berbagai negara pilihan (`ID`, `US`, `MY`, `JP`, `VN`, `TH`, `SG`, `PH`, `KR`, `ALL`).
-4. **Smart Unquoted CLI Argument Parser**: Ketik kata kunci multi-kata secara bebas tanpa memerlukan tanda petik (`" "`).
-5. **ISO Region Whitelist Guard**: Mencegah kata-kata bahasa Inggris 3-huruf seperti `YOU` (dari *"about you"*), `NEW` (dari *"new jeans"*), `FOR`, `CAR` tertukar sebagai kode negara.
-6. **Interactive Terminal Navigator**: Navigasi halaman pencarian di terminal cukup dengan menekan `[ENTER]`, melompat ke nomor halaman, atau berganti region secara instan.
-7. **Production-Ready REST API Server**: Server HTTP terintegrasi dengan dukungan CORS enabled (`/api/search` & `/api/download`).
-8. **Direct No-Watermark MP4 Downloader**: Endpoint & CLI downloader bawaan dengan penanganan header `Referer` otomatis untuk bypass error CDN Akamai EdgeSuite `403 Access Denied`.
-9. **Compact Clean JSON Output**: Respon rapi, ringkas, dan memuat watermark kredit resmi `"created_by": "Lann"`.
+- ⚡ **Zero NPM Dependencies**: 100% modul native Node.js (`http`, `net`, `child_process`, `fs`, `readline`). Tidak butuh *Puppeteer*, *Playwright*, atau library eksternal lainnya.
+- 🪶 **Engine Headless Super Ringan (Custom Native CDP)**: Menggunakan driver CDP native buatan sendiri tanpa beban runtime Puppeteer/Playwright (hemat RAM hingga 85%, hanya ~40–60MB RAM selama 2–3 detik).
+- 🍪 **Pre-Configured Cookie**: Sudah dilengkapi file `cookie.txt` aktif bawaan di repo. Tinggal clone dan langsung jalankan!
+- 📊 **Statistik 100% Real**: Views, Likes, Comments, Shares, Saves, dan Durasi Video presisi tinggi.
+- 🎬 **Direct HD Stream**: Link stream MP4 No Watermark (`stream_mp4_no_wm`) & Watermark langsung dari CDN ByteDance.
+- 🎵 **Direct Audio MP3**: Link download audio resmi `.mp3` langsung dari CDN TikTok.
+- 🖼️ **HD Cover & Dynamic Animated GIF**: Thumbnail original resolusi penuh serta animasi dinamis GIF preview video.
+- 🌍 **Multi-Region Filter**: Mendukung filter region spesifik (`ID`, `US`, `MY`, `JP`, `VN`, `TH`, `GB`, `KR`, dll.) serta mode Global (`ALL`).
+- 🚀 **Built-in REST API Server**: Endpoint siap pakai untuk bot WhatsApp, Telegram, Discord, atau Web Dashboard.
 
 ---
 
-## 🎯 Cara Kerja Ultra-Precision NLP Scoring Engine
+## 🪶 Mengapa Headless Browser Buatan Kita Sangat Ringan?
 
-TikTok Search Scraper ini tidak hanya sekadar mengambil data mentah dari API, melainkan memproses setiap video melalui evaluasi algoritma **NLP Proximity Distance Scorer**:
+Banyak orang mengira menjalankan browser di HP (Termux) atau VPS spek rendah akan membuat sistem lag dan kehabisan memori (OOM). **Tidak dengan engine ini!** Berikut alasannya:
 
-```mermaid
-flowchart TD
-    A[Raw Video dari TikTok Feed] --> B{1. Filter Region?}
-    B -- Region Tidak Sesuai --> C[❌ REJECT 0% Score]
-    B -- Region Sesuai / ALL --> D{2. Exact Phrase Match?}
-    D -- Ya --> E[✅ SCORE 100% - EXACT_MATCH]
-    D -- Tidak --> F{3. Hashtag Match?}
-    F -- Ya --> G[✅ SCORE 95% - HASHTAG_EXACT]
-    F -- Tidak --> H{4. Check Word Proximity Span}
-    H -- Jarak Kata <= Max Span --> I[✅ SCORE 70-90% - CLOSE_PROXIMITY]
-    H -- Kata Terpisah Jauh --> J[❌ REJECT 0% - SCATTERED_WORDS]
+1. 🚫 **Bukan Puppeteer / Playwright (Zero Overhead)**:
+   - Library seperti Puppeteer membawa puluhan dependency berat dan memakan RAM **300 MB s/d 500 MB+**.
+   - Scraper ini menggunakan **Native CDP Socket Client** buatan sendiri yang berkomunikasi langsung ke port debugging browser via modul native Node.js (`net` & `WebSocket`).
+2. ⏱️ **Siklus Hidup Hit-and-Kill (Ephemeral Lifecycle)**:
+   - Browser **TIDAK** berjalan terus-menerus di background. Browser hanya di-spawn saat request pencarian datang, mengambil data selama **2–3 detik**, lalu prosesnya **langsung di-kill secara paksa (`SIGKILL`)** dan seluruh memori RAM langsung dilepas kembali 100%!
+3. 🔒 **Kunci Memori V8 128 MB (`--max-old-space-size=128`)**:
+   - Alokasi memori JavaScript Chrome dibatasi keras maksimal **128 MB**, sehingga tidak mungkin terjadi kebocoran memori (memory leak).
+4. ⚡ **Bypass GPU & Render Berat**:
+   - Dijalankan dengan flag `--disable-gpu`, `--disable-software-rasterizer`, dan `--disable-dev-shm-usage` yang mematikan render visual tidak perlu, menjaga CPU dan suhu perangkat tetap adem.
+
+---
+
+## 📱 Panduan Lengkap Termux (Android)
+
+Scraper ini dirancang khusus agar **sangat ringan dan ramah baterai** di HP Android via Termux.
+
+### 1. Update Package & Install Environment
+Buka aplikasi **Termux**, lalu jalankan satu baris perintah berikut:
+```bash
+pkg update -y && pkg install nodejs git chromium -y
 ```
 
-### Kriteria Penilaian Precision Score:
-- **`100% (EXACT_MATCH)`**: Frasa kata kunci muncul utuh berurutan di caption atau nama creator.
-- **`95% (HASHTAG_EXACT)`**: Frasa kata kunci muncul utuh dalam bentuk hashtag (misal `#djgoyangdayung`).
-- **`70% - 90% (CLOSE_PROXIMITY)`**: Kata-kata pencarian muncul berdekatan dalam rentang $\le (N + 3)$ kata.
-- **`0% (REJECTED)`**: Kata-kata pencarian terpisah jauh atau berasal dari luar region yang dipilih.
-
----
-
-## 🛡️ ISO Region Whitelist Guard (Smart CLI Parser)
-
-Untuk mencegah kesalahan sistem CLI saat pengguna memasukkan frasa kata kunci yang mengandung kata 3-huruf (seperti *"about you"*, *"new jeans"*, *"man in black"*), parser dilengkapi dengan **ISO Country Region Whitelist**:
-
-```javascript
-const VALID_REGION_CODES = new Set([
-    'ID', 'US', 'MY', 'JP', 'VN', 'TH', 'SG', 'PH', 'KR', 'CN', 'TW', 'HK',
-    'GB', 'UK', 'CA', 'AU', 'NZ', 'DE', 'FR', 'ES', 'IT', 'NL', 'BR', 'MX',
-    'AR', 'CL', 'CO', 'PE', 'IN', 'PK', 'BD', 'RU', 'UA', 'TR', 'SA', 'AE',
-    'EG', 'ZA', 'ALL', 'ANY', '*'
-]);
-```
-
-- Jika argumen terakhir **ADA** di dalam `VALID_REGION_CODES`, maka dibaca sebagai **Region Code**.
-- Jika argumen terakhir **TIDAK ADA** (seperti kata `"you"`), maka otomatis digabungkan menjadi bagian dari **Kata Kunci Pencarian**.
-
----
-
-## 🛠️ Persyaratan Sistem & Instalasi
-
-### 1. Requirements:
-- Operating System: Windows, Linux, atau macOS.
-- **Node.js**: versi `18.0.0` atau yang lebih baru.
-
-### 2. Instalasi (Tanpa Dependensi Tambahan):
-Cukup clone repository atau unduh file `tt.js`:
+### 2. Clone Repository
 ```bash
 git clone https://github.com/lannreal/tt.git
 cd tt
 ```
 
-*(Tidak perlu `npm install` karena menggunakan modul native Node.js).*
+### 3. Jalankan Pencarian
+```bash
+# Pencarian Standar (Region Default: ID)
+node tt.js search "about you"
+
+# Pencarian Global / Seluruh Dunia
+node tt.js search "about you" 1 ALL
+
+# Pencarian Region Khusus (Contoh: Jepang / US)
+node tt.js search "anime edit" 1 JP
+node tt.js search "cyberpunk edit" 1 US
+
+# Menjalankan REST API Server di HP
+node tt.js api 3000
+```
+
+> 💡 **Mengapa Sangat Ringan di Termux?**
+> Browser Chromium hanya menyala di background selama **2–3 detik** untuk mengambil data, menggunakan memori RAM maksimal **128 MB**, lalu instance browser **langsung dimatikan total** sehingga RAM HP langsung kembali 0 MB!
 
 ---
 
-## 💻 Panduan Penggunaan CLI (Terminal Mode)
+## 💻 Panduan di PC (Windows / Linux / macOS)
 
-### 1. Menampilkan Panduan Manual Bawaan (Help Guide)
+### 1. Prasyarat
+* **Node.js (v18+)**
+* Browser **Google Chrome**, **Microsoft Edge**, atau **Chromium** terpasang di sistem.
+
+### 2. Clone & Eksekusi
 ```bash
-node tt.js
-```
-*(Atau `node tt.js help`)*
+# 1. Clone repository
+git clone https://github.com/lannreal/tt.git
+cd tt
 
-### 2. Melakukan Pencarian Video (Unquoted Search)
-Anda bisa bebas mengetik kata kunci tanpa tanda petik:
+# 2. Jalankan pencarian langsung
+node tt.js search "shape of my heart" 1 ALL
 
-```bash
-# Search default (Page 1, Region ID Indonesia)
-node tt.js dj goyang dayung
-
-# Search multi-kata bahasa Inggris
-node tt.js about you
-
-# Search ke halaman 2
-node tt.js resep ayam geprek 2
-
-# Search di region spesifik (US / MY / JP / ALL)
-node tt.js street food 1 US
-node tt.js sushi recipe JP
-node tt.js trending viral ALL
-```
-
-### 3. Mengunduh Video MP4 via CLI
-```bash
-node tt.js download "<URL_STREAM_MP4>" "video_pilihan.mp4"
+# 3. Jalankan REST API Server
+node tt.js api 3000
 ```
 
 ---
 
-## 🎮 Navigasi Interaktif Terminal
+## ⚙️ Mekanisme Smart WAF Auto-Recovery & Arsitektur
 
-Saat perintah pencarian dijalankan di CLI, terminal tidak langsung keluar melainkan menyediakan menu navigator interaktif:
+Scraper ini menggabungkan sistem **Hybrid 2-Tier Architecture**:
+
+```
+[User Request] 
+      │
+      ▼
+[Tier 1: Native Headless CDP Browser] 
+      ├─ Direct Navigation to /search?q=<keyword>
+      ├─ WAF Screen Detection ("Something went wrong")
+      ├─ Auto-Click "Try again" ➜ Generates WASM X-Bogus/X-Gnarly Tokens
+      └─ Universal Regex Scraper Extracts Video IDs & Permalinks
+      │
+      ▼
+[Tier 2: Multi-Datacenter Fast-Race & Enrichment Engine]
+      ├─ Aweme Multi-Datacenter API (useast2a, alisg, useast1a, va)
+      ├─ Official Public TikTok oEmbed API (High Reliability Meta)
+      └─ Direct Downloader CDN Resolvers (ssstik + lovetik)
+      │
+      ▼
+[JSON Clean Output / REST API Response]
+```
+
+---
+
+## 🔑 Panduan Lengkap Konfigurasi Cookie
+
+Repository ini **sudah menyertakan `cookie.txt` aktif bawaan** yang siap digunakan out-of-the-box. Jika kamu ingin memperbarui atau menggunakan akun TikTok milikmu sendiri, gunakan panduan berikut:
+
+### 📋 Tabel 12 Parameter Cookie TikTok Resmi
+
+| Nama Parameter Cookie | Kategori | Deskripsi & Peran Teknis |
+| :--- | :--- | :--- |
+| `sessionid` | **Wajib (Utama)** | Kunci otentikasi sesi login utama akun TikTok. |
+| `sessionid_ss` | **Wajib** | Token *Secure Session* untuk enkripsi jalur HTTPS. |
+| `sid_tt` | **Wajib** | Identifier sesi web internal TikTok. |
+| `sid_guard` | **Wajib** | Token pengaman dan verifikasi masa berlaku sesi login. |
+| `ttwid` | **Wajib** | Token identitas perangkat/browser unik dari ByteDance WAF. |
+| `s_v_web_id` | **Wajib** | Token verifikasi deteksi bot dan bypass captcha (*Web Security ID*). |
+| `msToken` | **Wajib** | Token tanda tangan dinamis request API TikTok. |
+| `tt_csrf_token` | Pendukung | Token proteksi keamanan *Cross-Site Request Forgery*. |
+| `tt_chain_token` | Pendukung | Token validasi aliran request berantai ByteDance. |
+| `uid_tt` / `uid_tt_ss` | Pendukung | Identifier unik User ID akun TikTok. |
+| `store-country-code` | Regional | Kode negara preferensi akun (contoh: `id`, `us`, `my`). |
+| `tt-target-idc` | Routing | Identifier routing data center TikTok (contoh: `alisg`, `useast2a`). |
+
+---
+
+### 🛠️ 2 Cara Termudah Menyalin Seluruh Cookie Sekaligus:
+
+#### Cara 1: Menggunakan DevTools Network (Paling Direkomendasikan)
+1. Buka [tiktok.com](https://www.tiktok.com) di browser dan pastikan sudah login.
+2. Tekan **`F12`** (atau `Ctrl + Shift + I`) untuk membuka **Developer Tools**.
+3. Buka tab **Network**, lalu refresh halaman (`F5`).
+4. Klik pada request pertama paling atas (bernama `www.tiktok.com` atau `search`).
+5. Di panel kanan, lihat bagian **Headers** > **Request Headers**.
+6. Cari baris **`Cookie:`**, klik kanan pada baris tersebut, lalu pilih **Copy value**.
+7. Buka file `cookie.txt` di folder project dan tempelkan (*paste*) isinya.
+
+#### Cara 2: Menggunakan Console DevTools (1 Baris Perintah)
+1. Buka [tiktok.com](https://www.tiktok.com) di browser.
+2. Buka tab **Console** di Developer Tools (`F12`).
+3. Ketik perintah berikut lalu tekan **Enter**:
+   ```javascript
+   copy(document.cookie)
+   ```
+4. Seluruh cookie yang aktif otomatis tersalin ke clipboard. Buka file `cookie.txt` dan tempelkan isinya.
+
+> 💡 **Masa Aktif Cookie**: Cookie TikTok biasanya bertahan **2 hingga 3 bulan**. Jangan klik tombol *"Log Out"* di browser agar sesi cookie tetap aktif.
+
+---
+
+## 🖥️ Panduan CLI Interaktif
+
+Saat menjalankan pencarian di terminal, output disajikan dalam format JSON yang bersih dengan menu navigasi minimalis 1 baris di bawah:
 
 ```text
-================================================================================
-📌 NAVIGASI CLI [REGION: ID (Indonesia)] (Kreator: Lann):
- ➔ Tekan [ENTER]           : Lanjut Halaman 2
- ➔ Ketik nomor             : Lompat Halaman (misal '3')
- ➔ Ketik 'r <kode_region>' : Ubah Region (misal 'r US', 'r MY', 'r ALL')
- ➔ Ketik 'help'            : Tampilkan Panduan Manual Lengkap
- ➔ Ketik 'q'               : Keluar
-================================================================================
-▶ [PAGE 1 | REGION: ID] Opsi (atau 'help'):
+───────────────────────────────────────────────────────────────────────────
+[Page 1 · ALL (Global / Worldwide)] [Enter] Next · [1-9] Jump · [r <reg>] Region · [q] Quit
+› 
 ```
 
-- Setiap kali pencarian berhasil, hasil JSON otomatis disimpan secara lokal ke file `search_<keyword>_page_<N>.json`.
+### Tombol / Perintah Navigasi:
+| Input | Fungsi |
+| :--- | :--- |
+| **`[ENTER]`** | Lanjut ke Halaman Berikutnya (Page 2, 3, dst.) |
+| **`1-9`** | Langsung melompat ke nomor halaman tertentu (misal ketik `3` lalu Enter) |
+| **`r <kode_region>`** | Mengganti filter region secara instan (misal `r US`, `r JP`, `r ID`, `r ALL`) |
+| **`help`** | Menampilkan panduan manual CLI |
+| **`q`** atau **`exit`** | Keluar dari program |
 
 ---
 
-## 📡 Dokumentasi REST API Server
+## 🌐 Panduan REST API Server
 
-Jalankan server REST API dengan perintah:
+Jalankan scraper sebagai service background REST API:
+
 ```bash
-node tt.js api
+node tt.js api 3000
 ```
-*(Default Server berjalan di `http://localhost:3000`)*
+*Output:*
+```text
+TikTok REST API Server Active (http://localhost:3000)
+• Search API   : http://localhost:3000/api/search?keyword=about+you&region=ALL
+• Download API : http://localhost:3000/api/download?url=<CDN_URL>
+```
+
+### 1. Endpoint Search (`GET /api/search`)
+**Query Parameters:**
+| Parameter | Tipe | Wajib | Keterangan |
+| :--- | :--- | :--- | :--- |
+| `keyword` atau `q` | String | **Ya** | Kata kunci pencarian video |
+| `page` | Number | Tidak | Nomor halaman (default: `1`) |
+| `region` | String | Tidak | Kode negara (`ID`, `US`, `JP`, `ALL`, default: `ID`) |
+
+**Contoh Request:**
+```http
+GET http://localhost:3000/api/search?keyword=about+you&page=1&region=ALL
+```
 
 ---
 
-### 1. Search API (`GET /api/search`)
+### 2. Endpoint Download Stream (`GET /api/download`)
+Mengalirkan (*streaming*) video langsung dari CDN TikTok sebagai file attachment:
 
-Mengambil data pencarian video TikTok dalam format JSON ringkas dan presisi.
+**Query Parameters:**
+| Parameter | Tipe | Wajib | Keterangan |
+| :--- | :--- | :--- | :--- |
+| `url` atau `link` | String | **Ya** | URL CDN video dari `stream_mp4_no_wm` atau `stream_mp4_wm` |
+| `filename` | String | Tidak | Nama file output (default: `tiktok_video.mp4`) |
 
-- **Endpoint**: `/api/search`
-- **Method**: `GET`
-- **Query Parameters**:
-  - `keyword` / `q` *(Wajib)*: Kata kunci pencarian.
-  - `page` *(Opsional, Default: `1`)*: Nomor halaman pencarian.
-  - `region` *(Opsional, Default: `ID`)*: Kode region negara (`ID`, `US`, `MY`, `JP`, `VN`, `ALL`).
-
-#### 💡 Example Request:
+**Contoh Request:**
 ```http
-GET http://localhost:3000/api/search?keyword=about+you&page=1&region=ID
+GET http://localhost:3000/api/download?url=https://tikcdn.io/ssstik/7619336725319453972&filename=about_you.mp4
 ```
 
-#### 📦 Response Body (JSON):
+---
+
+## 📥 Direct Video Downloader
+
+Unduh video CDN langsung ke penyimpanan lokal via CLI:
+
+```bash
+node tt.js download "<URL_STREAM_MP4>" nama_video.mp4
+```
+
+---
+
+## 📄 Spesifikasi Skema Data JSON
+
 ```json
 {
     "created_by": "Lann",
-    "search_engine": "TikTok Ultra-Precision REST API",
+    "search_engine": "TikTok Ultra-Precision Search Scraper",
     "search_info": {
         "keyword": "about you",
         "current_page": 1,
-        "current_region": "ID (Indonesia)",
+        "current_region": "ALL (Global / Worldwide)",
         "items_per_page": 5,
-        "total_items_found": 5
+        "total_items_found": 3
     },
     "data": [
         {
             "accuracy": "100% (EXACT_MATCH)",
-            "region": "ID",
-            "title": "about you 1975 #promomakangajian #fyp #song #lyrics ",
-            "upload_date": "2026-04-26 16:58:04",
-            "duration": "26s",
+            "region": "ALL",
+            "title": "The 1975 - About You (Full Lyrics) | #the1975 #aboutyou #applemusic #fyp #lyric #lyrics #musicvibe #musicvibes ",
+            "upload_date": "3/20/2026",
+            "duration": "326.2s",
             "hashtags": [
-                "#promomakangajian",
+                "#the1975",
+                "#aboutyou",
+                "#applemusic",
                 "#fyp",
-                "#song",
-                "#lyrics"
+                "#lyric",
+                "#lyrics",
+                "#musicvibe",
+                "#musicvibes"
             ],
             "stats": {
-                "views": 3447,
-                "likes": 120,
-                "comments": 2,
-                "shares": 10,
-                "saves": 17
+                "views": "2,124,016",
+                "likes": "82,656",
+                "comments": "616",
+                "shares": "9,515",
+                "saves": "14,951"
             },
             "creator": {
-                "name": "ewinggg",
-                "username": "@xxwingg",
-                "avatar": "https://p19-common-sign.tiktokcdn-us.com/..."
+                "name": "Music Vibes",
+                "username": "@music.vibes_32",
+                "avatar": "https://p16-common-sign.tiktokcdn-eu.com/tos-alisg-avt-0068/..."
             },
             "audio": {
-                "title": "original sound - xxwingg",
-                "author": "ewinggg",
-                "mp3_url": "https://v45.tiktokcdn-us.com/..."
+                "title": "About You",
+                "author": "The 1975",
+                "mp3_url": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2774/..."
             },
             "links": {
-                "tiktok_web": "https://www.tiktok.com/@xxwingg/video/7633113262216776981",
-                "stream_mp4_no_wm": "https://v45.tiktokcdn-us.com/...",
-                "stream_mp4_wm": "https://v45.tiktokcdn-us.com/...",
-                "cover_image": "https://p16-common-sign.tiktokcdn-us.com/..."
+                "tiktok_web": "https://www.tiktok.com/@music.vibes_32/video/7619336725319453972",
+                "stream_mp4_no_wm": "https://v16m-default.tiktokcdn-eu.com/...",
+                "stream_mp4_wm": "https://v16m-default.tiktokcdn-eu.com/...",
+                "cover_image": "https://p16-common-sign.tiktokcdn-eu.com/tos-alisg-p-0037/...",
+                "animated_gif": "https://p16-common-sign.tiktokcdn-eu.com/tos-alisg-p-0037/..."
             }
         }
     ]
@@ -287,150 +340,18 @@ GET http://localhost:3000/api/search?keyword=about+you&page=1&region=ID
 
 ---
 
-### 2. Direct Download API (`GET /api/download`)
+## 🛡️ Fitur Keamanan, Memory & Stabilitas Jangka Panjang
 
-Streaming langsung file video `.mp4` tanpa watermark dari CDN TikTok dengan bypass header `Referer`.
-
-- **Endpoint**: `/api/download`
-- **Method**: `GET`
-- **Query Parameters**:
-  - `url` *(Wajib)*: URL `stream_mp4_no_wm` dari respon search API.
-  - `filename` *(Opsional, Default: `tiktok_video.mp4`)*: Nama file hasil download.
-
-#### 💡 Example Request:
-```http
-GET http://localhost:3000/api/download?url=https://v45.tiktokcdn-us.com/...&filename=my_video.mp4
-```
+1. **Zero Disk Leaks (`fs.rmSync`)**: Folder temporary user data browser otomatis dihapus dari memori penyimpanan setiap kali request selesai.
+2. **Zombie Process Prevention**: Handler sinyal OS (`SIGINT`, `SIGTERM`, `uncaughtException`) memastikan tidak ada proses Chromium yang tertinggal jika aplikasi dihentikan paksa.
+3. **Async Mutex Concurrency Lock**: Menangani request simultan pada mode REST API secara antrean teratur agar RAM perangkat tidak overload.
+4. **V8 Memory Capping**: Membatasi penggunaan memori V8 heap Chrome pada 128 MB sehingga sangat bersahabat untuk perangkat smartphone.
+5. **Multi-Datacenter Fallback**: Jika salah satu gateway datacenter TikTok mengalami rate limit, request otomatis dialihkan ke gateway datacenter lain secara instan.
 
 ---
 
-### 3. Server Health & Info API (`GET /api`)
+## 👨‍💻 Kontributor & Lisensi
 
-```http
-GET http://localhost:3000/api
-```
-
----
-
-## 💻 Contoh Integrasi Kode (Code Snippets)
-
-### 1. Node.js (Fetch API)
-```javascript
-const response = await fetch('http://localhost:3000/api/search?keyword=dj+goyang+dayung&region=ID');
-const result = await response.json();
-
-console.log(`Ditemukan ${result.data.length} video oleh ${result.created_by}:`);
-result.data.forEach((video, i) => {
-    console.log(`${i + 1}. ${video.title}`);
-    console.log(`   Link Download: ${video.links.stream_mp4_no_wm}\n`);
-});
-```
-
-### 2. Python (Requests)
-```python
-import requests
-
-url = "http://localhost:3000/api/search"
-params = {"keyword": "street food", "page": 1, "region": "US"}
-
-response = requests.get(url, params=params)
-data = response.json()
-
-for video in data["data"]:
-    print(f"[{video['accuracy']}] {video['title']}")
-    print(f"Stream MP4: {video['links']['stream_mp4_no_wm']}\n")
-```
-
-### 3. Frontend JavaScript / HTML Download Button
-```html
-<button id="downloadBtn">Download Video TikTok</button>
-
-<script>
-document.getElementById('downloadBtn').addEventListener('click', () => {
-    const cdnUrl = "https://v45.tiktokcdn-us.com/...";
-    const downloadApiUrl = `http://localhost:3000/api/download?url=${encodeURIComponent(cdnUrl)}&filename=my_tiktok_video.mp4`;
-    
-    // Membuka link langsung untuk mengunduh otomatis di browser
-    window.location.href = downloadApiUrl;
-});
-</script>
-```
-
-### 4. PHP (cURL)
-```php
-<?php
-$apiUrl = "http://localhost:3000/api/search?keyword=resep+ayam+geprek&region=ID";
-
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, $apiUrl);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-$response = curl_exec($ch);
-curl_close($ch);
-
-$data = json_decode($response, true);
-foreach ($data['data'] as $video) {
-    echo "Judul: " . $video['title'] . "\n";
-    echo "Stream MP4: " . $video['links']['stream_mp4_no_wm'] . "\n\n";
-}
-?>
-```
-
----
-
-## 🚀 Panduan Deploy ke Server Production
-
-### A. Deploy VPS menggunakan PM2:
-```bash
-# 1. Install PM2 secara global
-npm install -g pm2
-
-# 2. Jalankan REST API Server menggunakan PM2
-pm2 start tt.js --name "tiktok-api" -- api 3000
-
-# 3. Simpan state PM2 agar otomatis jalan saat server reboot
-pm2 save
-pm2 startup
-```
-
-### B. Deploy Menggunakan Docker:
-
-Buat file `Dockerfile`:
-```dockerfile
-FROM node:20-alpine
-WORKDIR /app
-COPY tt.js ./
-EXPOSE 3000
-CMD ["node", "tt.js", "api", "3000"]
-```
-
-Build dan jalankan container:
-```bash
-docker build -t tiktok-search-api .
-docker run -d -p 3000:3000 --name tiktok-api-container tiktok-search-api
-```
-
----
-
-## ⚠️ Troubleshooting & FAQ
-
-### Q1: Mengapa URL CDN video mengembalikan `403 Access Denied` saat dibuka langsung di browser?
-> **Jawaban**: Server CDN Akamai EdgeSuite TikTok mewajibkan header `Referer: https://www.tiktok.com/` saat mengakses URL video MP4. Jika diakses langsung tanpa header, CDN akan menolak akses (`403`).
-> **Solusi**: Gunakan endpoint `/api/download?url=<CDN_URL>` atau perintah CLI `node tt.js download <CDN_URL>` karena sistem kami telah membungkus header `Referer` secara otomatis.
-
-### Q2: Bagaimana cara mengubah jumlah item per halaman?
-> **Jawaban**: Buka file `tt.js` dan ubah konstanta `ITEMS_PER_PAGE = 5;` di baris atas sesuai kebutuhan Anda (misal `ITEMS_PER_PAGE = 10;`).
-
-### Q3: Apakah scraper ini membutuhkan API Key?
-> **Jawaban**: Tidak! Scraper ini 100% bebas API Key dan dapat langsung digunakan tanpa pendaftaran apapun.
-
----
-
-## 📜 Lisensi & Kredit
-
-- **Kreator**: Dibuat dengan ❤️ oleh **Lann**
-- **Lisensi**: Lilisensikan di bawah **MIT License**. Bebas digunakan, dimodifikasi, dan diintegrasikan ke dalam proyek komersial maupun non-komersial.
-
-<div align="center">
-  <br/>
-  <sub>Created with passion & precision by <b>Lann</b></sub>
-</div>
+- **Lead Developer**: Lann
+- **License**: MIT
+- **Issues & Pull Requests**: [GitHub Repository Issues](https://github.com/lannreal/tt/issues)
