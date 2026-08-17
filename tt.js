@@ -532,7 +532,12 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
         `--user-data-dir=${tempDir}`
     ];
 
-    const chromeProc = spawn(browserPath, browserArgs);
+    const targetSearchUrl = `https://www.tiktok.com/search?q=${encodeURIComponent(keyword)}`;
+
+    const chromeProc = spawn(browserPath, [
+        ...browserArgs,
+        targetSearchUrl
+    ]);
 
     let procError = null;
     let procStderr = '';
@@ -584,7 +589,8 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
             const listRes = await fetch(`http://127.0.0.1:${port}/json/list`, { signal: AbortSignal.timeout(1000) });
             if (listRes.ok) {
                 const tabs = await listRes.json();
-                const pageTab = tabs.find(t => t.type === 'page' && t.webSocketDebuggerUrl);
+                const pageTab = tabs.find(t => t.url && t.url.includes('tiktok.com') && t.webSocketDebuggerUrl) ||
+                                tabs.find(t => t.type === 'page' && t.webSocketDebuggerUrl);
                 if (pageTab) tabWsUrl = pageTab.webSocketDebuggerUrl;
             }
         } catch (e) {}
