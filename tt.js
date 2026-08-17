@@ -495,17 +495,43 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
     };
 
     try {
-        for (let i = 0; i < 25; i++) {
+        let isReady = false;
+        for (let i = 0; i < 40; i++) {
             try {
                 const checkRes = await fetch(`http://127.0.0.1:${port}/json/version`, { signal: AbortSignal.timeout(500) });
-                if (checkRes.ok) break;
+                if (checkRes.ok) {
+                    isReady = true;
+                    break;
+                }
             } catch (e) {
                 await new Promise(r => setTimeout(r, 200));
             }
         }
 
-        const newTab = await fetch(`http://127.0.0.1:${port}/json/new`, { method: 'PUT' }).then(r => r.json());
-        const ws = new WebSocket(newTab.webSocketDebuggerUrl);
+        if (!isReady) {
+            throw new Error(`Browser gagal memulai debugging port pada 127.0.0.1:${port}. Pastikan Chromium terinstall dengan benar.`);
+        }
+
+        let tabWsUrl = '';
+        try {
+            const listRes = await fetch(`http://127.0.0.1:${port}/json/list`, { signal: AbortSignal.timeout(1000) });
+            if (listRes.ok) {
+                const tabs = await listRes.json();
+                const pageTab = tabs.find(t => t.type === 'page' && t.webSocketDebuggerUrl);
+                if (pageTab) tabWsUrl = pageTab.webSocketDebuggerUrl;
+            }
+        } catch (e) {}
+
+        if (!tabWsUrl) {
+            const newTab = await fetch(`http://127.0.0.1:${port}/json/new`, { method: 'PUT', signal: AbortSignal.timeout(2000) }).then(r => r.json());
+            tabWsUrl = newTab.webSocketDebuggerUrl;
+        }
+
+        if (!tabWsUrl) {
+            throw new Error('Gagal mendapatkan WebSocket debugger URL dari browser.');
+        }
+
+        const ws = new WebSocket(tabWsUrl);
 
         await new Promise((resolve, reject) => {
             ws.onopen = resolve;
@@ -1127,6 +1153,17 @@ async function main() {
 
     if (!keyword) {
         printCliManual();
+        return;
+    }
+
+    const browserPath = findBrowserPath();
+    if (!browserPath) {
+        console.error(`\n${C.yellow}⚠️ [BROWSER CHROMIUM BELUM TERPASANG]${C.reset}`);
+        console.error(`Scraper membutuhkan Chromium untuk mengambil data pencarian TikTok.`);
+        console.error(`👉 ${C.bold}Cara Pasang di Termux (Android):${C.reset}`);
+        console.error(`   ${C.green}pkg install x11-repo -y && pkg install chromium -y${C.reset}`);
+        console.error(`👉 ${C.bold}Cara Pasang di Linux / VPS:${C.reset}`);
+        console.error(`   ${C.green}sudo apt update && sudo apt install -y chromium-browser${C.reset}\n`);
         return;
     }
 
