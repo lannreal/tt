@@ -90,8 +90,8 @@ pkg install tur-repo -y && pkg install chromium -y
 
 ### 2. Clone Repository
 ```bash
-git clone https://github.com/lannreal/aemprem.git
-cd aemprem
+git clone https://github.com/lannreal/tt.git
+cd tt
 ```
 
 ### 3. Jalankan Pencarian
@@ -373,8 +373,8 @@ sudo npm install -g pm2
 #### Langkah B: Clone Project & Jalankan dengan PM2
 ```bash
 # Clone repository
-git clone https://github.com/lannreal/aemprem.git
-cd aemprem
+git clone https://github.com/lannreal/tt.git
+cd tt
 
 # Jalankan service REST API di background dengan PM2
 pm2 start tt.js --name "tiktok-api" -- api 3000
@@ -419,7 +419,7 @@ Repository ini sudah dilengkapi dengan **`Dockerfile` siap pakai**. Platform sep
 #### Cara Deploy di Railway:
 1. Login ke [railway.app](https://railway.app).
 2. Klik **New Project** > **Deploy from GitHub repo**.
-3. Pilih repository `aemprem`.
+3. Pilih repository `tt`.
 4. Di bagian **Variables**, kamu bisa menambahkan variabel opsional:
    - `PORT`: `3000`
    - `TIKTOK_COOKIE`: *(isi dengan seluruh baris cookie dari `cookie.txt` jika ingin menggunakan env variable)*
@@ -441,7 +441,7 @@ export default {
     const url = new URL(request.url);
 
     // Ganti dengan URL backend VPS / Railway kamu
-    const BACKEND_ORIGIN = "https://aemprem-production.up.railway.app";
+    const BACKEND_ORIGIN = "https://tt-production.up.railway.app";
     const targetUrl = new URL(url.pathname + url.search, BACKEND_ORIGIN);
 
     // Handle CORS Preflight
