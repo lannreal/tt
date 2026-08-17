@@ -509,6 +509,7 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
         '--no-sandbox',
         '--disable-gpu',
         '--disable-dev-shm-usage',
+        '--ignore-certificate-errors',
         `--user-data-dir=${tempDir}`
     ] : [
         isTermux ? '--headless' : '--headless=new',
@@ -523,6 +524,11 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
         '--disable-background-networking',
         '--disable-extensions',
         '--disable-sync',
+        '--ignore-certificate-errors',
+        '--allow-running-insecure-content',
+        '--disable-web-security',
+        '--window-size=1440,900',
+        '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
         `--user-data-dir=${tempDir}`
     ];
 
@@ -806,7 +812,18 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
             } catch (e) {}
         }
 
-        process.stderr.write('\r' + ' '.repeat(40) + '\r');
+        if (rawSearchList.length === 0) {
+            try {
+                const diag = await send('Runtime.evaluate', {
+                    expression: `({ title: document.title, url: location.href, snippet: (document.body?.innerText || '').slice(0, 150).replace(/\\n+/g, ' ') })`,
+                    returnByValue: true
+                }, 2000);
+                if (diag?.result?.value) {
+                    console.log(`⚠️ Info Halaman TikTok: "${diag.result.value.title}" | Cuplikan: "${diag.result.value.snippet}"`);
+                }
+            } catch (e) {}
+        }
+
         console.log(`[3/3] 📊 Berhasil memperoleh ${rawSearchList.length} data video! Memproses enrichment...`);
 
         if (page > 1 && rawSearchList.length > 0) {
