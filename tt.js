@@ -20,7 +20,7 @@ const url = require('url');
 const os = require('os');
 const path = require('path');
 const net = require('net');
-const { spawn } = require('child_process');
+const { spawn, execSync } = require('child_process');
 
 const ITEMS_PER_PAGE = 5;
 const DEFAULT_PORT = process.env.PORT || 3000;
@@ -200,24 +200,19 @@ function evaluatePrecision(item, keyword, targetRegion = 'ID') {
     }
 
     let minSpan = Infinity;
-    if (wordPositions.length === 1) {
-        minSpan = 0;
-    } else {
-        for (let pos0 of wordPositions[0]) {
-            for (let pos1 of wordPositions[1] || [pos0]) {
-                const p2List = wordPositions[2] || [pos1];
-                for (let pos2 of p2List) {
-                    const p3List = wordPositions[3] || [pos2];
-                    for (let pos3 of p3List) {
-                        const maxP = Math.max(pos0, pos1, pos2, pos3);
-                        const minP = Math.min(pos0, pos1, pos2, pos3);
-                        const span = maxP - minP;
-                        if (span < minSpan) minSpan = span;
-                    }
-                }
-            }
+    function findSpan(wordIndex, currentPosList) {
+        if (wordIndex === wordPositions.length) {
+            const min = Math.min(...currentPosList);
+            const max = Math.max(...currentPosList);
+            const span = max - min;
+            if (span < minSpan) minSpan = span;
+            return;
+        }
+        for (const pos of wordPositions[wordIndex]) {
+            findSpan(wordIndex + 1, [...currentPosList, pos]);
         }
     }
+    findSpan(0, []);
 
     const maxAllowedSpan = queryWords.length + 3;
 
@@ -278,17 +273,60 @@ function findBrowserPath() {
     if (process.env.CHROMIUM_PATH && fs.existsSync(process.env.CHROMIUM_PATH)) return process.env.CHROMIUM_PATH;
     if (process.env.BROWSER_PATH && fs.existsSync(process.env.BROWSER_PATH)) return process.env.BROWSER_PATH;
 
+    // Check dynamic PATH lookup on Linux / Termux / macOS
+    if (process.platform !== 'win32') {
+        try {
+            const found = execSync('which chromium || which chromium-browser || which google-chrome || which google-chrome-stable || which chrome', {
+                stdio: ['ignore', 'pipe', 'ignore'],
+                timeout: 1000
+            }).toString().trim();
+            if (found && fs.existsSync(found)) return found;
+        } catch (e) {}
+
+        // Dynamic package file discovery via dpkg (Guaranteed for Termux / Debian / Ubuntu)
+        try {
+            const dpkgOutput = execSync('dpkg -L chromium 2>/dev/null || dpkg -L chromium-browser 2>/dev/null', {
+                stdio: ['ignore', 'pipe', 'ignore'],
+                timeout: 2000
+            }).toString();
+            const lines = dpkgOutput.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            for (const p of lines) {
+                if (fs.existsSync(p)) {
+                    try {
+                        const stat = fs.statSync(p);
+                        if (stat.isFile() && (stat.mode & 0o111) && !p.endsWith('.so') && !p.endsWith('.pak')) {
+                            return p;
+                        }
+                    } catch (e) {}
+                }
+            }
+        } catch (e) {}
+    }
+
+    const termuxPrefix = process.env.PREFIX || '/data/data/com.termux/files/usr';
     const userProfile = process.env.USERPROFILE || '';
     const possible = [
+        path.join(termuxPrefix, 'opt', 'chromium', 'chromium'),
+        path.join(termuxPrefix, 'opt', 'chromium', 'chrome'),
+        path.join(termuxPrefix, 'lib', 'chromium', 'chromium'),
+        path.join(termuxPrefix, 'lib', 'chromium', 'chrome'),
+        path.join(termuxPrefix, 'libexec', 'chromium'),
+        path.join(termuxPrefix, 'bin', 'chromium'),
+        path.join(termuxPrefix, 'bin', 'chromium-browser'),
+        path.join(termuxPrefix, 'bin', 'chrome'),
+        '/data/data/com.termux/files/usr/opt/chromium/chromium',
+        '/data/data/com.termux/files/usr/opt/chromium/chrome',
+        '/data/data/com.termux/files/usr/lib/chromium/chromium',
+        '/data/data/com.termux/files/usr/lib/chromium/chrome',
+        '/data/data/com.termux/files/usr/bin/chromium',
+        '/data/data/com.termux/files/usr/bin/chromium-browser',
+        '/data/data/com.termux/files/usr/bin/chrome',
         'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
         'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
         path.join(userProfile, 'AppData\\Local\\Google\\Chrome\\Application\\chrome.exe'),
         'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
         'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
         path.join(userProfile, 'AppData\\Local\\Microsoft\\Edge\\Application\\msedge.exe'),
-        '/data/data/com.termux/files/usr/bin/chromium',
-        '/data/data/com.termux/files/usr/bin/chromium-browser',
-        '/data/data/com.termux/files/usr/bin/chrome',
         '/usr/bin/google-chrome',
         '/usr/bin/google-chrome-stable',
         '/usr/bin/chromium-browser',
@@ -458,11 +496,15 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
         });
     });
 
-    const tempDir = path.join(os.tmpdir(), `tt_browser_${process.pid}_${Date.now()}`);
+    const baseTmpDir = process.env.TMPDIR || os.tmpdir();
+    const tempDir = path.join(baseTmpDir, `tt_browser_${process.pid}_${Date.now()}`);
     activeTempDirs.add(tempDir);
 
+    const isTermux = Boolean(process.env.PREFIX && process.env.PREFIX.includes('com.termux'));
+    const headlessFlag = isTermux ? '--headless' : '--headless=new';
+
     const chromeProc = spawn(browserPath, [
-        '--headless=new',
+        headlessFlag,
         `--remote-debugging-port=${port}`,
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -481,6 +523,15 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
         `--user-data-dir=${tempDir}`
     ]);
 
+    let procError = null;
+    let procStderr = '';
+    chromeProc.on('error', (err) => {
+        procError = err;
+    });
+    chromeProc.stderr?.on('data', (d) => {
+        procStderr += d.toString();
+    });
+
     activeProcesses.add(chromeProc);
 
     const cleanupInstance = () => {
@@ -497,6 +548,7 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
     try {
         let isReady = false;
         for (let i = 0; i < 40; i++) {
+            if (procError) break;
             try {
                 const checkRes = await fetch(`http://127.0.0.1:${port}/json/version`, { signal: AbortSignal.timeout(500) });
                 if (checkRes.ok) {
@@ -509,7 +561,11 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
         }
 
         if (!isReady) {
-            throw new Error(`Browser gagal memulai debugging port pada 127.0.0.1:${port}. Pastikan Chromium terinstall dengan benar.`);
+            if (procError) {
+                throw new Error(`Gagal mengeksekusi Chromium binary (${browserPath}): ${procError.message}`);
+            }
+            const errSnippet = procStderr.trim() ? ` [Detail: ${procStderr.trim().slice(-200)}]` : '';
+            throw new Error(`Chromium tidak merespons di port ${port}.${errSnippet}`);
         }
 
         let tabWsUrl = '';
