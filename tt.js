@@ -306,21 +306,22 @@ function findBrowserPath() {
     const termuxPrefix = process.env.PREFIX || '/data/data/com.termux/files/usr';
     const userProfile = process.env.USERPROFILE || '';
     const possible = [
+        path.join(termuxPrefix, 'bin', 'headless_shell'),
+        path.join(termuxPrefix, 'bin', 'chromium-browser'),
+        path.join(termuxPrefix, 'lib', 'chromium', 'headless_shell'),
+        path.join(termuxPrefix, 'lib', 'chromium', 'chrome'),
+        path.join(termuxPrefix, 'lib', 'chromium', 'chrome-wrapper'),
         path.join(termuxPrefix, 'opt', 'chromium', 'chromium'),
         path.join(termuxPrefix, 'opt', 'chromium', 'chrome'),
         path.join(termuxPrefix, 'lib', 'chromium', 'chromium'),
-        path.join(termuxPrefix, 'lib', 'chromium', 'chrome'),
         path.join(termuxPrefix, 'libexec', 'chromium'),
         path.join(termuxPrefix, 'bin', 'chromium'),
-        path.join(termuxPrefix, 'bin', 'chromium-browser'),
         path.join(termuxPrefix, 'bin', 'chrome'),
-        '/data/data/com.termux/files/usr/opt/chromium/chromium',
-        '/data/data/com.termux/files/usr/opt/chromium/chrome',
-        '/data/data/com.termux/files/usr/lib/chromium/chromium',
+        '/data/data/com.termux/files/usr/bin/headless_shell',
+        '/data/data/com.termux/files/usr/bin/chromium-browser',
+        '/data/data/com.termux/files/usr/lib/chromium/headless_shell',
         '/data/data/com.termux/files/usr/lib/chromium/chrome',
         '/data/data/com.termux/files/usr/bin/chromium',
-        '/data/data/com.termux/files/usr/bin/chromium-browser',
-        '/data/data/com.termux/files/usr/bin/chrome',
         'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
         'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
         path.join(userProfile, 'AppData\\Local\\Google\\Chrome\\Application\\chrome.exe'),
@@ -1231,6 +1232,7 @@ async function main() {
     let running = true;
 
     while (running) {
+        console.log(`\n${C.cyan}🔍 Mengambil data pencarian TikTok: "${keyword}" [Page ${currentPage} · ${formatRegionLabel(currentRegion)}]...${C.reset}`);
         const results = await searchTikTok(keyword, currentPage, currentRegion);
 
         const finalOutput = {
