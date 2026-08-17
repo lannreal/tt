@@ -89,8 +89,8 @@ pkg install tur-repo -y && pkg install chromium -y
 
 ### 2. Clone Repository
 ```bash
-git clone https://github.com/lannreal/aemprem.git
-cd aemprem
+git clone https://github.com/lannreal/tt.git
+cd tt
 ```
 
 ### 3. Jalankan Pencarian
