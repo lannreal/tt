@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Creator-Lann-purple?style=for-the-badge" alt="Creator Lann" />
 </p>
 
-> **Creator Lann**  
+> **Created with ❤️ by Lann**  
 > Engine pencarian TikTok presisi tinggi, metadata scraper (*Views, Likes, Comments, Shares, Saves, Duration, Audio MP3, Direct MP4 No Watermark*), serta server REST API bawaan dengan arsitektur **Zero External NPM Dependencies**.  
 > **Siap Pakai (Out-of-the-Box)**: File `cookie.txt` sudah disertakan langsung di repository, siap di-run langsung di **PC** maupun **HP Android via Termux** tanpa setting rumit!
 
@@ -77,15 +77,20 @@ Banyak orang mengira menjalankan browser di HP (Termux) atau VPS spek rendah aka
 Scraper ini dirancang khusus agar **sangat ringan dan ramah baterai** di HP Android via Termux.
 
 ### 1. Update Package & Install Environment
-Buka aplikasi **Termux**, lalu jalankan satu baris perintah berikut:
+Di Termux, paket `chromium` berada di repositori **`x11-repo`** atau **`tur-repo`**. Jalankan perintah berikut:
 ```bash
-pkg update -y && pkg install nodejs git chromium -y
+# Update & install Node.js, Git, serta Chromium via x11-repo:
+pkg update -y && pkg install nodejs git x11-repo -y && pkg install chromium -y
+```
+*(Alternatif jika x11-repo tidak tersedia di devicemu):*
+```bash
+pkg install tur-repo -y && pkg install chromium -y
 ```
 
 ### 2. Clone Repository
 ```bash
-git clone https://github.com/lannreal/tt.git
-cd tt
+git clone https://github.com/lannreal/aemprem.git
+cd aemprem
 ```
 
 ### 3. Jalankan Pencarian

@@ -274,6 +274,10 @@ function getStoredCookie() {
 }
 
 function findBrowserPath() {
+    if (process.env.CHROME_PATH && fs.existsSync(process.env.CHROME_PATH)) return process.env.CHROME_PATH;
+    if (process.env.CHROMIUM_PATH && fs.existsSync(process.env.CHROMIUM_PATH)) return process.env.CHROMIUM_PATH;
+    if (process.env.BROWSER_PATH && fs.existsSync(process.env.BROWSER_PATH)) return process.env.BROWSER_PATH;
+
     const userProfile = process.env.USERPROFILE || '';
     const possible = [
         'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
@@ -282,11 +286,14 @@ function findBrowserPath() {
         'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
         'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
         path.join(userProfile, 'AppData\\Local\\Microsoft\\Edge\\Application\\msedge.exe'),
+        '/data/data/com.termux/files/usr/bin/chromium',
+        '/data/data/com.termux/files/usr/bin/chromium-browser',
+        '/data/data/com.termux/files/usr/bin/chrome',
         '/usr/bin/google-chrome',
+        '/usr/bin/google-chrome-stable',
         '/usr/bin/chromium-browser',
         '/usr/bin/chromium',
-        '/data/data/com.termux/files/usr/bin/chromium-browser',
-        '/data/data/com.termux/files/usr/bin/chromium'
+        '/snap/bin/chromium'
     ];
 
     for (const p of possible) {
@@ -778,7 +785,8 @@ async function searchTikTok(keyword, page = 1, regionTarget = 'ID') {
             } else {
                 console.error('\n⚠️ [ENVIRONMENT INFO]');
                 console.error('Browser Chromium/Chrome tidak ditemukan di environment ini.');
-                console.error('💡 Solusi Termux: Install chromium dengan: pkg install chromium -y\n');
+                console.error('💡 Solusi Termux: Install chromium via repo x11 dengan perintah:');
+                console.error('   pkg install x11-repo -y && pkg install chromium -y\n');
                 return [];
             }
 
