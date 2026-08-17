@@ -671,18 +671,16 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
             } catch (e) {}
         };
 
-        await send('Network.enable', {
-            maxTotalBufferSize: 100000000,
-            maxResourceBufferSize: 10000000
-        });
-        await send('Page.enable');
-
-        await send('Emulation.setDeviceMetricsOverride', {
-            width: 1440,
-            height: 900,
-            deviceScaleFactor: 1,
-            mobile: false
-        });
+        await Promise.all([
+            send('Network.enable', { maxTotalBufferSize: 100000000, maxResourceBufferSize: 10000000 }, 3000),
+            send('Page.enable', {}, 3000),
+            send('Emulation.setDeviceMetricsOverride', {
+                width: 1440,
+                height: 900,
+                deviceScaleFactor: 1,
+                mobile: false
+            }, 3000)
+        ]);
 
         // ANTI-DETECTION & IN-PAGE API INTERCEPTION HOOKS
         await send('Page.addScriptToEvaluateOnNewDocument', {
@@ -711,28 +709,30 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
                     return response;
                 };
             `
-        });
+        }, 3000);
 
         const rawCookie = getStoredCookie();
         if (rawCookie) {
             const cookiePairs = rawCookie.split(';').map(c => c.trim()).filter(Boolean);
+            const cookiesToSet = [];
             for (const pair of cookiePairs) {
                 const idx = pair.indexOf('=');
                 if (idx > 0) {
-                    const name = pair.substring(0, idx).trim();
-                    const value = pair.substring(idx + 1).trim();
-                    await send('Network.setCookie', {
-                        name,
-                        value,
+                    cookiesToSet.push({
+                        name: pair.substring(0, idx).trim(),
+                        value: pair.substring(idx + 1).trim(),
                         domain: '.tiktok.com',
                         path: '/'
                     });
                 }
             }
+            if (cookiesToSet.length > 0) {
+                await send('Network.setCookies', { cookies: cookiesToSet }, 3000);
+            }
         }
 
         console.log(`[2/3] 🌐 Membuka halaman pencarian TikTok: "${keyword}"...`);
-        await send('Page.navigate', { url: `https://www.tiktok.com/search?q=${encodeURIComponent(keyword)}` });
+        await send('Page.navigate', { url: `https://www.tiktok.com/search?q=${encodeURIComponent(keyword)}` }, 5000);
 
         // Adaptive Polling: Wait for search results from CDP or DOM with auto-retry on error screens
         for (let poll = 0; poll < 15; poll++) {
