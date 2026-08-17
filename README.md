@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Creator-Lann-purple?style=for-the-badge" alt="Creator Lann" />
 </p>
 
-> **Created with ❤️ by Lann**  
+> **Creator Lann**  
 > Engine pencarian TikTok presisi tinggi, metadata scraper (*Views, Likes, Comments, Shares, Saves, Duration, Audio MP3, Direct MP4 No Watermark*), serta server REST API bawaan dengan arsitektur **Zero External NPM Dependencies**.  
 > **Siap Pakai (Out-of-the-Box)**: File `cookie.txt` sudah disertakan langsung di repository, siap di-run langsung di **PC** maupun **HP Android via Termux** tanpa setting rumit!
 
