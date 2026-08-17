@@ -502,10 +502,16 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
     activeTempDirs.add(tempDir);
 
     const isTermux = Boolean(process.env.PREFIX && process.env.PREFIX.includes('com.termux'));
-    const headlessFlag = isTermux ? '--headless' : '--headless=new';
+    const isHeadlessShell = browserPath.includes('headless_shell');
 
-    const chromeProc = spawn(browserPath, [
-        headlessFlag,
+    const browserArgs = isHeadlessShell ? [
+        `--remote-debugging-port=${port}`,
+        '--no-sandbox',
+        '--disable-gpu',
+        '--disable-dev-shm-usage',
+        `--user-data-dir=${tempDir}`
+    ] : [
+        isTermux ? '--headless' : '--headless=new',
         `--remote-debugging-port=${port}`,
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -517,12 +523,10 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
         '--disable-background-networking',
         '--disable-extensions',
         '--disable-sync',
-        '--disable-breakpad',
-        '--disable-component-update',
-        '--disable-blink-features=AutomationControlled',
-        '--js-flags=--max-old-space-size=128',
         `--user-data-dir=${tempDir}`
-    ]);
+    ];
+
+    const chromeProc = spawn(browserPath, browserArgs);
 
     let procError = null;
     let procStderr = '';
@@ -711,6 +715,7 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
 
         // Adaptive Polling: Wait for search results from CDP or DOM with auto-retry on error screens
         for (let poll = 0; poll < 15; poll++) {
+            process.stderr.write(`\r⏳ Menunggu data TikTok [${poll + 1}/15]... `);
             await new Promise(r => setTimeout(r, 1000));
 
             // Priority 1: Check CDP interceptor
@@ -771,6 +776,8 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
                 await send('Runtime.evaluate', { expression: 'window.scrollBy(0, 600);' });
             } catch (e) {}
         }
+
+        process.stderr.write('\r' + ' '.repeat(40) + '\r');
 
         if (page > 1 && rawSearchList.length > 0) {
             const scrollSteps = (page - 1) * 2;
