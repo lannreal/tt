@@ -510,6 +510,8 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
         '--disable-gpu',
         '--disable-dev-shm-usage',
         '--ignore-certificate-errors',
+        '--enable-features=DnsOverHttps',
+        '--dns-over-https-templates=https://dns.google/dns-query{?dns}',
         `--user-data-dir=${tempDir}`
     ] : [
         isTermux ? '--headless' : '--headless=new',
@@ -527,6 +529,9 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
         '--ignore-certificate-errors',
         '--allow-running-insecure-content',
         '--disable-web-security',
+        '--test-type',
+        '--enable-features=DnsOverHttps',
+        '--dns-over-https-templates=https://dns.google/dns-query{?dns}',
         '--window-size=1440,900',
         '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
         `--user-data-dir=${tempDir}`
@@ -653,6 +658,10 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
                     } else {
                         entry.resolve(msg.result);
                     }
+                }
+
+                if (msg.method === 'Network.loadingFailed' && msg.params?.type === 'Document') {
+                    console.log(`⚠️ Status Koneksi: ${msg.params?.errorText || 'Jaringan Terputus'}`);
                 }
 
                 if (msg.method === 'Network.responseReceived') {
