@@ -671,9 +671,20 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
             } catch (e) {}
         };
 
+        const DESKTOP_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
+
         await Promise.all([
             send('Network.enable', { maxTotalBufferSize: 100000000, maxResourceBufferSize: 10000000 }, 3000),
             send('Page.enable', {}, 3000),
+            send('Network.setUserAgentOverride', {
+                userAgent: DESKTOP_UA,
+                acceptLanguage: 'en-US,en;q=0.9,id;q=0.8',
+                platform: 'Win32'
+            }, 3000),
+            send('Emulation.setUserAgentOverride', {
+                userAgent: DESKTOP_UA,
+                platform: 'Win32'
+            }, 3000),
             send('Emulation.setDeviceMetricsOverride', {
                 width: 1440,
                 height: 900,
@@ -682,32 +693,15 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
             }, 3000)
         ]);
 
-        // ANTI-DETECTION & IN-PAGE API INTERCEPTION HOOKS
+        // ANTI-DETECTION STEALTH HOOKS (DO NOT TAMPER WINDOW.FETCH TO PREVENT MSSDK INTEGRITY FAIL)
         await send('Page.addScriptToEvaluateOnNewDocument', {
             source: `
                 Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+                Object.defineProperty(navigator, 'platform', { get: () => 'Win32' });
+                Object.defineProperty(navigator, 'maxTouchPoints', { get: () => 0 });
                 Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en', 'id'] });
                 Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
                 window.chrome = { runtime: {} };
-
-                window.__tiktokSearchResults = [];
-                const originalFetch = window.fetch;
-                window.fetch = async function(...args) {
-                    const response = await originalFetch.apply(this, args);
-                    try {
-                        const url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url ? args[0].url : '');
-                        if (url.includes('/api/search/')) {
-                            const clone = response.clone();
-                            clone.json().then(json => {
-                                const list = json.data || json.item_list || json.search_data || [];
-                                if (list.length > 0) {
-                                    window.__tiktokSearchResults = list;
-                                }
-                            }).catch(() => {});
-                        }
-                    } catch(e) {}
-                    return response;
-                };
             `
         }, 3000);
 
@@ -734,33 +728,60 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
         console.log(`[2/3] 🌐 Membuka halaman pencarian TikTok: "${keyword}"...`);
         await send('Page.navigate', { url: `https://www.tiktok.com/search?q=${encodeURIComponent(keyword)}` }, 5000);
 
-        // Adaptive Polling: Wait for search results from CDP or DOM with auto-retry on error screens
+        // Adaptive Polling: Wait for search results from CDP, in-page memory, or DOM
         for (let poll = 0; poll < 15; poll++) {
             process.stderr.write(`\r⏳ Menunggu data TikTok [${poll + 1}/15]... `);
             await new Promise(r => setTimeout(r, 1000));
 
-            // Priority 1: Check CDP interceptor
+            // Priority 1: Check CDP interceptor or in-page window variable
+            if (rawSearchList.length === 0) {
+                try {
+                    const inPageRes = await send('Runtime.evaluate', {
+                        expression: 'window.__tiktokSearchResults',
+                        returnByValue: true
+                    });
+                    if (inPageRes?.result?.value && inPageRes.result.value.length > 0) {
+                        rawSearchList = inPageRes.result.value;
+                        break;
+                    }
+                } catch(e) {}
+            }
             if (rawSearchList.length > 0) break;
 
-            // Priority 2: Auto-click "Try again" if TikTok WAF error appears & extract DOM search videos
+            // Priority 2: Auto-click "Try again" / "Refresh" button (Leaf element only)
             try {
                 const domRes = await send('Runtime.evaluate', {
                     expression: `
                         (() => {
-                            const buttons = Array.from(document.querySelectorAll('button'));
-                            const tryAgainBtn = buttons.find(b => b.innerText.toLowerCase().includes('try again') || b.innerText.toLowerCase().includes('refresh'));
-                            if (tryAgainBtn) {
-                                tryAgainBtn.click();
+                            const buttons = Array.from(document.querySelectorAll('button, [role="button"], a'));
+                            let tryAgainBtn = buttons.find(b => {
+                                const txt = (b.innerText || '').toLowerCase().trim();
+                                return txt === 'try again' || txt === 'refresh' || txt === 'coba lagi';
+                            });
+
+                            if (!tryAgainBtn) {
+                                const allEls = Array.from(document.querySelectorAll('*'));
+                                tryAgainBtn = allEls.find(el => el.children.length === 0 && (el.innerText || '').toLowerCase().trim() === 'try again');
                             }
 
-                            const links = Array.from(document.querySelectorAll('a[href*="/video/"]'));
+                            if (tryAgainBtn) {
+                                tryAgainBtn.focus();
+                                ['mousedown', 'mouseup', 'click'].forEach(eventType => {
+                                    tryAgainBtn.dispatchEvent(new MouseEvent(eventType, {
+                                        bubbles: true,
+                                        cancelable: true,
+                                        view: window,
+                                        buttons: 1
+                                    }));
+                                });
+                            }
+
+                            const allLinks = Array.from(document.querySelectorAll('a[href*="/video/"]'));
+                            const nonNav = allLinks.filter(a => !a.closest('header, nav, aside, [data-e2e*="nav"], [data-e2e*="inbox"], [data-e2e*="notification"], [class*="DivSideNav"], [class*="DivInbox"]'));
                             const seen = new Set();
                             const results = [];
 
-                            for (const a of links) {
-                                if (a.closest('header, nav, aside, [data-e2e*="nav"], [data-e2e*="inbox"], [data-e2e*="notification"], [class*="DivSideNav"], [class*="DivInbox"]')) {
-                                    continue;
-                                }
+                            for (const a of nonNav) {
                                 const m = a.href.match(/\\/video\\/(\\d+)/);
                                 if (!m) continue;
                                 const videoId = m[1];
