@@ -75,43 +75,100 @@ Banyak orang mengira menjalankan browser di HP (Termux) atau VPS spek rendah aka
 
 ## 📱 Panduan Lengkap Termux (Android)
 
-Scraper ini dirancang khusus agar **sangat ringan dan ramah baterai** di HP Android via Termux.
+Scraper ini dirancang khusus agar **100% kompatibel, stabil, dan sangat hemat daya** di HP Android via Termux tanpa butuh akses root.
 
 ### 1. Update Package & Install Environment
-Di Termux, paket `chromium` berada di repositori **`x11-repo`** atau **`tur-repo`**. Jalankan perintah berikut:
+Di Termux (khususnya arsitektur `aarch64`/`arm64`), paket `chromium` resmi dikelola melalui **`tur-repo`**. Jalankan 3 baris perintah ini:
+
 ```bash
-# Update & install Node.js, Git, serta Chromium via x11-repo:
-pkg update -y && pkg install nodejs git x11-repo -y && pkg install chromium -y
-```
-*(Alternatif jika x11-repo tidak tersedia di devicemu):*
-```bash
-pkg install tur-repo -y && pkg install chromium -y
+# 1. Update repository & pasang tur-repo
+pkg update -y && pkg install tur-repo -y
+
+# 2. Refresh database daftar paket (WAJIB)
+apt update
+
+# 3. Install Node.js, Git, dan Chromium
+pkg install nodejs git chromium -y
 ```
 
-### 2. Clone Repository
+### 2. Clone Repository & Setup
 ```bash
 git clone https://github.com/lannreal/tt.git
 cd tt
 ```
+*(File `cookie.txt` sudah disertakan langsung di dalam repository, siap pakai tanpa konfigurasi tambahan).*
 
-### 3. Jalankan Pencarian
+### 3. Jalankan Pencarian di Termux
 ```bash
 # Pencarian Standar (Region Default: ID)
 node tt.js search "about you"
 
-# Pencarian Global / Seluruh Dunia
+# Pencarian Global / Seluruh Dunia (Page 1)
 node tt.js search "about you" 1 ALL
 
 # Pencarian Region Khusus (Contoh: Jepang / US)
 node tt.js search "anime edit" 1 JP
 node tt.js search "cyberpunk edit" 1 US
 
-# Menjalankan REST API Server di HP
+# Menjalankan REST API Server di Termux HP
 node tt.js api 3000
 ```
 
-> 💡 **Mengapa Sangat Ringan di Termux?**
-> Browser Chromium hanya menyala di background selama **2–3 detik** untuk mengambil data, menggunakan memori RAM maksimal **128 MB**, lalu instance browser **langsung dimatikan total** sehingga RAM HP langsung kembali 0 MB!
+---
+
+### 💡 Mengapa Engine Ini Sangat Andal & Adem di Termux?
+
+1. ⚡ **Bypass Sandbox Android (`--single-process` & `--no-zygote`)**:
+   - Android OS membatasi *forking* multi-proses browser biasa. Script ini otomatis mengaktifkan mode *single-process* native pada binary `/data/data/com.termux/files/usr/lib/chromium/chrome` sehingga navigasi JavaScript berjalan instan tanpa kendala *socket IPC*.
+2. ⏱️ **Siklus Hidup Ephemeral (2–3 Detik)**:
+   - Chromium **hanya menyala saat scraping berlangsung selama 2–3 detik**, lalu seluruh proses di-kill secara paksa (`SIGKILL`) dan memori RAM langsung kembali **0 MB**!
+3. 🔒 **Batas RAM Keras 128 MB**:
+   - Memori V8 dibatasi maksimal 128 MB dengan flag `--disable-gpu` dan `--disable-dev-shm-usage`, sehingga HP tetap dingin dan tidak boros baterai.
+
+---
+
+### 🛠️ Troubleshooting Termux:
+
+| Kendala | Penyebab | Solusi Cepat |
+| :--- | :--- | :--- |
+| `Unable to locate package chromium` | Database repo Termux belum menambahkan `tur-repo` (atau HP bertipe 32-bit). | Jalankan: `pkg install tur-repo -y && apt update && pkg install chromium -y` |
+| `Permission denied` pada process | Termux berjalan di memori internal biasa. | Script otomatis menggunakan direct ELF path dengan flag `--no-sandbox`. |
+| Menjalankan REST API 24/7 di HP | Termux tertutup oleh sistem battery saver Android. | Jalankan `termux-wake-lock` di terminal Termux sebelum menjalankan `node tt.js api 3000`. |
+
+---
+
+### 📟 Khusus HP Android 32-Bit (`armv7l` / `armeabi-v7a` / `i686`)
+
+> ⚠️ **Catatan Arsitektur 32-Bit**:  
+> Tim pengembang Chromium dan Termux resmi menghentikan kompilasi build native modern untuk sistem 32-bit (`arm`). Jika kamu memeriksa `uname -m` dan hasilnya adalah **`armv7l`**, ikuti salah satu dari **2 metode di bawah**:
+
+#### 🔹 Metode 1: Menggunakan PRoot Debian (Rekomendasi Utama 32-Bit)
+PRoot menyediakan sandbox Linux Debian ARMHF lengkap di dalam Termux yang memiliki paket Chromium 32-bit resmi:
+
+```bash
+# 1. Pasang proot-distro di Termux
+pkg update -y && pkg install proot-distro git -y
+
+# 2. Pasang & login ke lingkungan Debian
+proot-distro install debian
+proot-distro login debian
+
+# 3. Di dalam prompt Debian, install Node.js, Chromium, dan Git
+apt update && apt install -y nodejs git chromium
+
+# 4. Clone repository dan langsung jalankan
+git clone https://github.com/lannreal/tt.git
+cd tt
+node tt.js search "about you" 1 ALL
+```
+
+#### 🔹 Metode 2: Mode Client-Server (REST API Ringan)
+Jika HP 32-bit memiliki kapasitas RAM yang sangat kecil (<= 1 GB), kamu bisa menjalankan `node tt.js api 3000` di VPS / Railway / Render gratisan, lalu HP 32-bit cukup memanggil endpoint JSON-nya via cURL atau bot:
+
+```bash
+# Panggil API pencarian dari HP 32-bit (sangat cepat & 0 MB RAM):
+curl -s "http://IP_VPS_KAMU:3000/api/search?keyword=about+you&region=ALL" | jq .
+```
 
 ---
 
@@ -423,7 +480,7 @@ Repository ini sudah dilengkapi dengan **`Dockerfile` siap pakai**. Platform sep
 4. Di bagian **Variables**, kamu bisa menambahkan variabel opsional:
    - `PORT`: `3000`
    - `TIKTOK_COOKIE`: *(isi dengan seluruh baris cookie dari `cookie.txt` jika ingin menggunakan env variable)*
-5. Railway akan otomatis build container Docker dan memberikan Public Domain URL (misal: `https://aemprem-production.up.railway.app/api/search?keyword=about+you`).
+5. Railway akan otomatis build container Docker dan memberikan Public Domain URL (misal: `https://tt-production.up.railway.app/api/search?keyword=about+you`).
 
 ---
 
@@ -532,4 +589,4 @@ docker compose up -d
 
 - **Lead Developer**: Lann
 - **License**: MIT
-- **Issues & Pull Requests**: [GitHub Repository Issues](https://github.com/lannreal/aemprem/issues)
+- **Issues & Pull Requests**: [GitHub Repository Issues](https://github.com/lannreal/tt/issues)
