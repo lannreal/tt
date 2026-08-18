@@ -306,22 +306,17 @@ function findBrowserPath() {
     const termuxPrefix = process.env.PREFIX || '/data/data/com.termux/files/usr';
     const userProfile = process.env.USERPROFILE || '';
     const possible = [
+        path.join(termuxPrefix, 'lib', 'chromium', 'chrome'),
+        '/data/data/com.termux/files/usr/lib/chromium/chrome',
         path.join(termuxPrefix, 'bin', 'chromium-browser'),
         path.join(termuxPrefix, 'bin', 'chromium'),
-        path.join(termuxPrefix, 'lib', 'chromium', 'chrome'),
         path.join(termuxPrefix, 'lib', 'chromium', 'chrome-wrapper'),
-        path.join(termuxPrefix, 'bin', 'headless_shell'),
         path.join(termuxPrefix, 'lib', 'chromium', 'headless_shell'),
-        path.join(termuxPrefix, 'opt', 'chromium', 'chromium'),
-        path.join(termuxPrefix, 'opt', 'chromium', 'chrome'),
-        path.join(termuxPrefix, 'lib', 'chromium', 'chromium'),
-        path.join(termuxPrefix, 'libexec', 'chromium'),
-        path.join(termuxPrefix, 'bin', 'chrome'),
+        path.join(termuxPrefix, 'bin', 'headless_shell'),
         '/data/data/com.termux/files/usr/bin/chromium-browser',
         '/data/data/com.termux/files/usr/bin/chromium',
-        '/data/data/com.termux/files/usr/lib/chromium/chrome',
-        '/data/data/com.termux/files/usr/bin/headless_shell',
         '/data/data/com.termux/files/usr/lib/chromium/headless_shell',
+        '/data/data/com.termux/files/usr/bin/headless_shell',
         'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
         'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
         path.join(userProfile, 'AppData\\Local\\Google\\Chrome\\Application\\chrome.exe'),
@@ -510,8 +505,8 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
         '--disable-gpu',
         '--disable-dev-shm-usage',
         '--ignore-certificate-errors',
-        '--enable-features=DnsOverHttps',
-        '--dns-over-https-templates=https://dns.google/dns-query{?dns}',
+        '--disable-web-security',
+        ...(isTermux ? ['--single-process', '--no-zygote'] : []),
         `--user-data-dir=${tempDir}`
     ] : [
         isTermux ? '--headless' : '--headless=new',
@@ -530,8 +525,7 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
         '--allow-running-insecure-content',
         '--disable-web-security',
         '--test-type',
-        '--enable-features=DnsOverHttps',
-        '--dns-over-https-templates=https://dns.google/dns-query{?dns}',
+        ...(isTermux ? ['--single-process', '--no-zygote'] : []),
         '--window-size=1440,900',
         '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
         `--user-data-dir=${tempDir}`
@@ -749,7 +743,12 @@ async function fetchTikTokSearchViaBrowser(keyword, page = 1, region = 'ID') {
         }
 
         console.log(`[2/3] 🌐 Membuka halaman pencarian TikTok: "${keyword}"...`);
-        await send('Page.navigate', { url: `https://www.tiktok.com/search?q=${encodeURIComponent(keyword)}` }, 5000);
+        const searchUrl = `https://www.tiktok.com/search?q=${encodeURIComponent(keyword)}`;
+        if (isTermux) {
+            await send('Runtime.evaluate', { expression: `window.location.href = "${searchUrl}"` }, 5000);
+        } else {
+            await send('Page.navigate', { url: searchUrl }, 5000);
+        }
 
         // Adaptive Polling: Wait for search results from CDP or DOM
         for (let poll = 0; poll < 12; poll++) {
